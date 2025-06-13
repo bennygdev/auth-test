@@ -32,9 +32,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(255),
         allowNull: false,
       },
-      image_url: {
-        type: DataTypes.STRING(2048),
-        allowNull: true,
+      role: {
+        type: DataTypes.ENUM('User', 'Moderator', 'Admin'),
+        allowNull: false,
+        defaultValue: 'User',
       },
     },
     {

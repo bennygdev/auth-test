@@ -20,4 +20,20 @@ const validateToken = (req, res, next) => {
   }
 };
 
-module.exports = { validateToken };
+const isModerator = (req, res, next) => {
+  if (req.user && (req.user.role === 'Moderator' || req.user.role === 'Admin')) {
+    next();
+  } else {
+    res.status(403).json({ msg: 'Moderator or Admin role required' });
+  }
+};
+
+const isAdmin = (req, res, next) => {
+  if (req.user && req.user.role === 'Admin') {
+    next();
+  } else {
+    res.status(403).json({ msg: 'Admin role required' });
+  }
+};
+
+module.exports = { validateToken, isModerator, isAdmin };

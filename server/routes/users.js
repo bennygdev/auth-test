@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 const { check, validationResult } = require('express-validator');
-const { validateToken } = require('../middlewares/auth');
+const { validateToken, isModerator, isAdmin } = require('../middlewares/auth');
 
 require("dotenv").config();
 
@@ -103,7 +103,8 @@ router.post(
       const payload = {
         user: {
           id: user.user_id,
-          username: user.username
+          username: user.username,
+          role: user.role,
         },
       };
 
@@ -122,5 +123,14 @@ router.post(
     }
   }
 );
+
+router.get('/authtest', validateToken, (req, res) => {
+  const { role } = req.user;
+  res.json({
+    message: `Welcome! Your role is ${role}.`,
+    role: role,
+  });
+});
+
 
 module.exports = router;
