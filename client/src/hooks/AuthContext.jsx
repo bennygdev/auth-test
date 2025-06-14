@@ -1,17 +1,15 @@
 import { useState, useEffect, createContext, useContext } from "react";
+import axios from "axios";
 
 const AuthContext = createContext(null);
 
-// Custom hook to use the AuthContext
 export const useAuth = () => useContext(AuthContext);
 
-// AuthProvider component to wrap the application
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // To handle initial auth state check
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for token in localStorage on initial component mount
     const token = localStorage.getItem("token");
     const userData = localStorage.getItem("user");
     if (token && userData) {
@@ -26,10 +24,29 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
   };
 
-  const logout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    setUser(null);
+  const logout = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        // Call the backend logout endpoint to invalidate the token
+        await axios.post(
+          "http://localhost:8080/api/users/logout",
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      } catch (error) {
+        console.error("Logout failed on server:", error);
+      } finally {
+        // This will run whether the API call succeeds or fails
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        setUser(null);
+      }
+    }
   };
 
   const authContextValue = {

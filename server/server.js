@@ -26,7 +26,8 @@ const redisClient = createClient({
     console.error('Redis connection error:', err);
   }
 })();
-// module.exports.redisClient = redisClient;
+
+module.exports.redisClient = redisClient;
 
 app.use(helmet());
 app.use(cors(corsOptions));

@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 const { check, validationResult } = require('express-validator');
 const { validateToken, isModerator, isAdmin } = require('../middlewares/auth');
+const { redisClient } = require('../server');
 
 require("dotenv").config();
 
@@ -123,6 +124,35 @@ router.post(
     }
   }
 );
+
+router.post('/logout', validateToken, async (req, res) => {
+  try {
+    const token = req.token;
+    const decoded = jwt.decode(token);
+
+    if (!decoded || !decoded.exp) {
+      return res.status(400).json({ msg: 'Invalid token' });
+    }
+
+    const expirationTime = decoded.exp;
+    const currentTime = Math.floor(Date.now() / 1000);
+    const remainingTime = expirationTime - currentTime;
+
+    if (remainingTime <= 0) {
+      return res.status(200).json({ msg: 'Token already expired.' });
+    }
+    
+    // Add token to Redis blocklist
+    await redisClient.set(`blocklist:${token}`, 'blocked', {
+      EX: remainingTime,
+    });
+
+    res.status(200).json({ msg: 'You have been logged out successfully' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
 
 router.get('/authtest', validateToken, (req, res) => {
   const { role } = req.user;

@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
+const { redisClient } = require('../server');
 require('dotenv').config();
 
-const validateToken = (req, res, next) => {
+const validateToken = async (req, res, next) => {
   const authHeader = req.header('Authorization');
   
   const token = authHeader && authHeader.split(' ')[1];
@@ -11,9 +12,16 @@ const validateToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_default_jwt_secret');
+    // Check if the token is in the Redis blocklist
+    const isBlocked = await redisClient.get(`blocklist:${token}`);
+    if (isBlocked) {
+      return res.status(401).json({ msg: 'Token has been invalidated. Please log in again.' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'jwtsecret');
     
     req.user = decoded.user;
+    req.token = token;
     next();
   } catch (err) {
     res.status(401).json({ msg: 'Token is not valid' });
