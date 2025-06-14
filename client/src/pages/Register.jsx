@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/AuthContext';
 import axios from 'axios';
 import SocialButton from '../components/SocialButton';
 
-function Register() {
+const Register = () => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",

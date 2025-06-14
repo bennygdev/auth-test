@@ -1,6 +1,6 @@
 import { useAuth } from "../hooks/AuthContext";
 
-function HomePage() {
+const HomePage = () => {
   const { user } = useAuth();
   return (
     <div className="text-center p-10">

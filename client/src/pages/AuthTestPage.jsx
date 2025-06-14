@@ -1,6 +1,6 @@
 import { useAuth } from "../hooks/AuthContext";
 
-function AuthTestPage() {
+const AuthTestPage = () => {
   const { user } = useAuth(); // The user object now contains the role
 
   if (!user) {

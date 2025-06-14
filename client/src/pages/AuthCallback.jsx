@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/AuthContext';
 import axios from 'axios';
 
-function AuthCallback() {
+const AuthCallback = () => {
   const { login } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();

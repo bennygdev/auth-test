@@ -4,7 +4,7 @@ import { useAuth } from "../hooks/AuthContext";
 import axios from "axios";
 import SocialButton from "../components/SocialButton";
 
-function Login() {
+const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const { login } = useAuth();
