@@ -6,6 +6,7 @@ const { User } = require('../models');
 const { check, validationResult } = require('express-validator');
 const { validateToken, isModerator, isAdmin } = require('../middlewares/auth');
 const { redisClient } = require('../server');
+const { Op } = require('sequelize');
 
 require("dotenv").config();
 
@@ -22,7 +23,7 @@ router.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ errors: errors.array().map(err => ({ ...err, param: err.path })) });
     }
 
     const { firstName, lastName, username, email, password } = req.body;
@@ -78,20 +79,38 @@ router.post(
 router.post(
   '/login',
   [
-    check('email', 'Please include a valid email').isEmail(),
+    check('usernameEmail', 'Email or Username is required').not().isEmpty(),
     check('password', 'Password is required').exists(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ errors: errors.array().map(err => ({ ...err, param: err.path })) });
     }
 
-    const { email, password } = req.body;
+    const { usernameEmail, password } = req.body;
 
     try {
-      let user = await User.findOne({ where: { email } });
+      let user = await User.findOne({
+        where: {
+          [Op.or]: [
+            { email: usernameEmail },
+            { username: usernameEmail }
+          ]
+        }
+      });
+
       if (!user) {
+        return res.status(400).json({ msg: 'Invalid Credentials' });
+      }
+
+      // Google check
+      if (!user.password && user.googleId) {
+        return res.status(400).json({ msg: 'This account was created using Google. Please sign in with Google.' });
+      }
+      
+      // For regular accounts
+      if (!user.password) {
         return res.status(400).json({ msg: 'Invalid Credentials' });
       }
 

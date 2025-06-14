@@ -1,22 +1,40 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/AuthContext";
 import axios from "axios";
 import SocialButton from "../components/SocialButton";
 
 const Login = () => {
-  const [formData, setFormData] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
-  const { login } = useAuth();
+  const { user, loading, login } = useAuth();
+  const [formData, setFormData] = useState({ 
+    email: "", 
+    password: "",
+  });
+  const [errors, setErrors] = useState("");
   const navigate = useNavigate();
+
+  if (loading) {
+    return null; // checking auth status
+  }
+
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+
+    if (errors[e.target.name] || errors.form) {
+      const newErrors = { ...errors };
+      delete newErrors[e.target.name];
+      delete newErrors.form;
+      setErrors(newErrors);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setErrors({});
     try {
       const res = await axios.post(
         "http://localhost:8080/api/users/login",
@@ -25,8 +43,19 @@ const Login = () => {
       login(res.data.user, res.data.token);
       navigate("/");
     } catch (err) {
-      const errorMsg = err.response?.data?.msg || "Login failed";
-      setError(errorMsg);
+      const errorData = err.response?.data;
+      if (errorData && errorData.errors) {
+        // Handle validation errors
+        const newErrors = {};
+        errorData.errors.forEach(error => {
+          newErrors[error.param] = error.msg;
+        });
+        setErrors(newErrors);
+      } else if (errorData && errorData.msg) {
+        setErrors({ form: errorData.msg });
+      } else {
+        setErrors({ form: "Login failed. Please try again." });
+      }
       console.error(err.response);
     }
   };
@@ -34,17 +63,18 @@ const Login = () => {
   return (
     <div className="max-w-md mx-auto mt-10 p-8 border border-gray-200 rounded-lg shadow-lg bg-white">
       <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
-      <form onSubmit={handleSubmit}>
-        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+      <form onSubmit={handleSubmit} noValidate>
+        {errors.form && <p className="text-red-500 text-center mb-4">{errors.form}</p>}
         <div className="mb-4">
           <input
-            type="email"
-            name="email"
-            placeholder="Email"
+            type="text"
+            name="usernameEmail"
+            placeholder="Email or Username"
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none"
+            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${errors.usernameEmail ? 'border-red-500' : 'border-gray-200'}`}
           />
+          {errors.usernameEmail && <p className="text-red-500 text-xs mt-1">{errors.usernameEmail}</p>}
         </div>
         <div className="mb-6">
           <input
@@ -53,8 +83,9 @@ const Login = () => {
             placeholder="Password"
             onChange={handleChange}
             required
-            className="w-full px-4 py-2 border border-gray-200 rounded-md focus:outline-none"
+            className={`w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ${errors.password ? 'border-red-500' : 'border-gray-200'}`}
           />
+          {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
         </div>
         <button
           type="submit"
