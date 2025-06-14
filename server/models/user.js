@@ -7,13 +7,18 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         autoIncrement: true,
       },
+      googleId: {
+        type: DataTypes.STRING,
+        unique: true,
+        allowNull: true,
+      },
       first_name: {
         type: DataTypes.STRING(255),
         allowNull: false,
       },
       last_name: {
         type: DataTypes.STRING(255),
-        allowNull: false,
+        allowNull: true,
       },
       username: {
         type: DataTypes.STRING(255),
@@ -30,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       password: {
         type: DataTypes.STRING(255),
-        allowNull: false,
+        allowNull: true,
       },
       role: {
         type: DataTypes.ENUM('User', 'Moderator', 'Admin'),

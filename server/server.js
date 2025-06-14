@@ -3,13 +3,14 @@ const cors = require("cors");
 const helmet = require("helmet");
 const { createClient } = require('redis');
 const db = require('./models');
+const passport = require('passport');
 require("dotenv").config();
 
 const app = express();
 
 const corsOptions = {
   origin: [
-    'http://localhost:5173',
+    process.env.CLIENT_BASE_URL,
   ], // vite server
 };
 
@@ -29,14 +30,19 @@ const redisClient = createClient({
 
 module.exports.redisClient = redisClient;
 
+require('./config/passport'); 
+
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize());
 
 // Routes
 const usersRouter = require('./routes/users');
+const authRouter = require('./routes/auth');
 app.use('/api/users', usersRouter);
+app.use('/api/auth', authRouter);
 
 app.get('/api', (req, res) => {
   res.json({'message': 'API is running'});

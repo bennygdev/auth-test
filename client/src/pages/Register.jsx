@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/AuthContext';
 import axios from 'axios';
+import SocialButton from '../components/SocialButton';
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -101,6 +102,29 @@ function Register() {
           Register
         </button>
       </form>
+
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-300"></div>
+        </div>
+        <div className="relative flex justify-center text-sm">
+          <span className="px-2 bg-white text-gray-500">Or register with</span>
+        </div>
+      </div>
+      
+      <div className="space-y-3">
+        <SocialButton provider="google">
+          {/* SVG Icon can be inserted here but i am too lazy */}
+          <span className="ml-2">Register with Google</span>
+        </SocialButton>
+      </div>
+
+      <p className="text-center mt-4 text-sm text-gray-600">
+        Already have an account?{" "}
+        <Link to="/login" className="text-blue-600 hover:underline">
+          Log in
+        </Link>
+      </p>
     </div>
   );
 }

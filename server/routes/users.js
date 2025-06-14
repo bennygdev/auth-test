@@ -162,5 +162,20 @@ router.get('/authtest', validateToken, (req, res) => {
   });
 });
 
+// Fetch current user data using token
+router.get('/me', validateToken, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: ['user_id', 'username', 'email', 'role'] // fields to return
+    });
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+    res.json(user);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
 
 module.exports = router;
